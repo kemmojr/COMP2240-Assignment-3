@@ -48,7 +48,7 @@ public class Process implements Comparable<Process>{
             blocked = true;
             return false;
         } else {
-            putPageInMemory();//Updates the page replacement tracking
+            putPageInMemory();//puts or updates the next page in memory with whichever means is necessary
             waitingOnPage = false;
             return true;
         }
@@ -112,7 +112,6 @@ public class Process implements Comparable<Process>{
     public void putPageInMemory(){
         //Called when the I/O wait is over and has transferred the page. Put the page into memory using the I/O controller. Also update the ready state of the process
 
-        currentPage = 27;
         if (isPageInMemory(currentPage)){//Update the LRU pages in the I/O controller
             IOController.usePageInMemory(currentPage);
         } else if (!isMemoryFull()){//Is there a free slot in memory. If so then put the page in the free slot

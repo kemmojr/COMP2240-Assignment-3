@@ -25,12 +25,13 @@ public class A3 {
 
         for (int i = 1; i < 3; i++) {
             if (i==1){
-                //RR(i, quantum, processes1);//Run RR with LRU
+                RR(i, quantum, processes1);//Run RR with LRU
             } else {
-                //RR(i, quantum, processes2);//Run RR with clock
+                RR(i, quantum, processes2);//Run RR with clock
             }
-
         }
+
+        System.out.println("Print out all the program statistics for each process for LRU and clock page replacement policies");
 
 
         /*boolean allProcessesFinished = false;
@@ -43,7 +44,8 @@ public class A3 {
     public static void RR(int replacementMode, int quantum, ArrayList<Process> allProcesses){
         //Do round robin scheduling with all of the processes
         ArrayList<Process> readyQueue = new ArrayList<>(), blockedQueue = new ArrayList<>();
-
+        Process executing = null;//The process that will be the currently executing process
+        int quantumTimeRemaining = quantum, quantumStartTime = 0;
         resetTime();
         for (Process p:allProcesses){
             p.setControllerMode(replacementMode);
@@ -53,76 +55,58 @@ public class A3 {
 
         boolean allProcessesFinished = false;
         while (!allProcessesFinished){//while loop to
-            // contain the RR scheduling of the processes and the nessacary methods for updating memory in processes etc.
+            // contain the RR scheduling of the processes and the necessary methods for updating memory in processes etc.
             for (Process p:allProcesses){
                 p.checkPage();
             }
             updateReadyQueue(blockedQueue,readyQueue);
-            allProcessesFinished = true;//This will be moved to when the condition of all the processes have finished is actually true
-            incrementTime();
+            //allProcessesFinished = true;//This will be moved to when the condition of all the processes have finished is actually true
             //RR scheduling here
 
-            /*if (processingTimeRemaining == 0) {
-                if (processing != null) {//If the last process is finishing it's processing time i.e. something was just processing and the scheduler isn't starving
-                    processing.setTurnAroundTime(-(processing.getArrive() - time));
-                    processing.setWaitingTime(processing.getTurnAroundTime()-processing.getInitialExecSize());
-                    PRRProcessed.add(processing);//metric tracking
+            if (executing==null) {
 
-                }
                 if (readyQueue.size() > 0) {
-                    time += dispatchTime;//factor in the time required to run the dispatcher
-                    processing = readyQueue.get(0);//get the next process with the highest priority from the readyQueue
-                    readyQueue.remove(processing);
-                    processing = new SchedulerProcess(processing);
-                    processingTimeRemaining = processing.getExecSize();//set how long this process has to go
-                    processing.setStartTime(time);
-                    PRRTimes.add(processing);
-                    if (processing.isHPC()){
-                        quantumTimeRemaining = quantumTimeHPC;
-                    } else {
-                        quantumTimeRemaining = quantumTimeLPC;
+                    executing = readyQueue.get(0);//get the next process with the highest priority from the readyQueue
+                    readyQueue.remove(executing);
+                    quantumTimeRemaining = quantum;
+                    quantumStartTime = A3.getTime();
+                    if (!executing.run()){
+                        blockedQueue.add(executing);
+                        executing = null;
                     }
-                } else if (temp.isEmpty()) {
-                    allItemsExecuted = true;
+                } else if (blockedQueue.isEmpty()) {
+                    allProcessesFinished = true;
                 } else {
-                    processing = null;
+                    executing = null;
                 }
             }
 
             if (quantumTimeRemaining ==0){//Pre-emption with quantum time
-                if (readyQueue.size()<0 && processingTimeRemaining >0){
+                if (readyQueue.size()<0 && !executing.checkPage()){
                     //continue running the process without running the dispatcher
-                    if (processing.isHPC()){
-                        quantumTimeRemaining = quantumTimeHPC;
-                    } else {
-                        quantumTimeRemaining = quantumTimeLPC;
+                    quantumTimeRemaining = quantum;
+                    quantumStartTime = A3.getTime();
+                    if (executing.run()){//If the process becomes blocked after running
+                        blockedQueue.add(executing);
+                        executing = null;
                     }
-                } else if (readyQueue.size()>0){
-                    time += dispatchTime;//factor in the time required to run the dispatcher
-                    if (processing!=null){
-                        processing.setExecSize(processingTimeRemaining);//decrease execution time by the amount executed
+                } else if (readyQueue.size()>0){//If there are processes in the readyQueue then swap to the process at teh top of the readyQueue
+                    if (executing.checkPage()){
+                        readyQueue.add(executing);//If the process is not blocked then add it back to the end of the ready queue
                     }
-                    processing = new SchedulerProcess(processing);
-                    addProcessBack(processing,readyQueue);
-                    processing = readyQueue.get(0);
-                    readyQueue.remove(processing);
-                    processing = new SchedulerProcess(processing);
-                    processing.setStartTime(time);
-                    PRRTimes.add(processing);
-                    processingTimeRemaining = processing.getExecSize();
-                    if (processing.isHPC()){
-                        quantumTimeRemaining = quantumTimeHPC;
-                    } else {
-                        quantumTimeRemaining = quantumTimeLPC;
+                    executing = readyQueue.get(0);
+                    readyQueue.remove(executing);
+                    if (!executing.run()){//If the process becomes blocked when it is run then add it to the blocked queue
+                        blockedQueue.add(executing);
                     }
+                    quantumTimeRemaining = quantum;
+                    quantumStartTime = A3.getTime();
                 }
 
 
             }
-            time++;
-            quantumTimeRemaining--;
-            if (processing != null)
-                processingTimeRemaining--;*/
+            incrementTime();
+            quantumTimeRemaining = quantumStartTime-A3.getTime();
 
         }
 
