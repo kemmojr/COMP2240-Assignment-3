@@ -62,6 +62,68 @@ public class A3 {
             incrementTime();
             //RR scheduling here
 
+            /*if (processingTimeRemaining == 0) {
+                if (processing != null) {//If the last process is finishing it's processing time i.e. something was just processing and the scheduler isn't starving
+                    processing.setTurnAroundTime(-(processing.getArrive() - time));
+                    processing.setWaitingTime(processing.getTurnAroundTime()-processing.getInitialExecSize());
+                    PRRProcessed.add(processing);//metric tracking
+
+                }
+                if (readyQueue.size() > 0) {
+                    time += dispatchTime;//factor in the time required to run the dispatcher
+                    processing = readyQueue.get(0);//get the next process with the highest priority from the readyQueue
+                    readyQueue.remove(processing);
+                    processing = new SchedulerProcess(processing);
+                    processingTimeRemaining = processing.getExecSize();//set how long this process has to go
+                    processing.setStartTime(time);
+                    PRRTimes.add(processing);
+                    if (processing.isHPC()){
+                        quantumTimeRemaining = quantumTimeHPC;
+                    } else {
+                        quantumTimeRemaining = quantumTimeLPC;
+                    }
+                } else if (temp.isEmpty()) {
+                    allItemsExecuted = true;
+                } else {
+                    processing = null;
+                }
+            }
+
+            if (quantumTimeRemaining ==0){//Pre-emption with quantum time
+                if (readyQueue.size()<0 && processingTimeRemaining >0){
+                    //continue running the process without running the dispatcher
+                    if (processing.isHPC()){
+                        quantumTimeRemaining = quantumTimeHPC;
+                    } else {
+                        quantumTimeRemaining = quantumTimeLPC;
+                    }
+                } else if (readyQueue.size()>0){
+                    time += dispatchTime;//factor in the time required to run the dispatcher
+                    if (processing!=null){
+                        processing.setExecSize(processingTimeRemaining);//decrease execution time by the amount executed
+                    }
+                    processing = new SchedulerProcess(processing);
+                    addProcessBack(processing,readyQueue);
+                    processing = readyQueue.get(0);
+                    readyQueue.remove(processing);
+                    processing = new SchedulerProcess(processing);
+                    processing.setStartTime(time);
+                    PRRTimes.add(processing);
+                    processingTimeRemaining = processing.getExecSize();
+                    if (processing.isHPC()){
+                        quantumTimeRemaining = quantumTimeHPC;
+                    } else {
+                        quantumTimeRemaining = quantumTimeLPC;
+                    }
+                }
+
+
+            }
+            time++;
+            quantumTimeRemaining--;
+            if (processing != null)
+                processingTimeRemaining--;*/
+
         }
 
 
