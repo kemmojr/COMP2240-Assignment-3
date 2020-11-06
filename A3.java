@@ -63,21 +63,35 @@ public class A3 {
             //allProcessesFinished = true;//This will be moved to when the condition of all the processes have finished is actually true
             //RR scheduling here
 
-            if (executing==null) {
+            if (readyQueue.size()>0) {
 
-                if (readyQueue.size() > 0) {
-                    executing = readyQueue.get(0);//get the next process with the highest priority from the readyQueue
-                    readyQueue.remove(executing);
-                    quantumTimeRemaining = quantum;
-                    quantumStartTime = A3.getTime();
-                    if (!executing.run()){
+                    if (executing==null) {
+                        executing = readyQueue.get(0);//get the next process with the highest priority from the readyQueue
+                        readyQueue.remove(executing);
+                        quantumStartTime = A3.getTime();
+                        if (!executing.run()){
+                            blockedQueue.add(executing);
+                            executing = null;
+                        }
+                    } else if (A3.getTime()-quantumStartTime==quantum){//if quantum time has passed for the running process then swap running process
                         blockedQueue.add(executing);
-                        executing = null;
+                        executing = readyQueue.get(0);//get the next process with the highest priority from the readyQueue
+                        readyQueue.remove(executing);
+                        quantumStartTime = A3.getTime();
+                        if (!executing.run()){
+                            blockedQueue.add(executing);
+                            executing = null;
+                        }
+                    } else {//If the process can still run then run it again
+                        if (!executing.run()){
+                            blockedQueue.add(executing);
+                            executing = null;
+                        }
                     }
-                } else if (blockedQueue.isEmpty()) {
+
+
+                if (blockedQueue.isEmpty() && readyQueue.isEmpty() && executing==null) {
                     allProcessesFinished = true;
-                } else {
-                    executing = null;
                 }
             }
 
@@ -105,8 +119,8 @@ public class A3 {
 
 
             }
-            incrementTime();
-            quantumTimeRemaining = quantumStartTime-A3.getTime();
+            if (readyQueue.isEmpty()&&executing==null)
+                incrementTime();
 
         }
 
