@@ -60,35 +60,38 @@ public class A3 {
                 p.checkPage();
             }
             updateReadyQueue(blockedQueue,readyQueue);
-            //allProcessesFinished = true;//This will be moved to when the condition of all the processes have finished is actually true
             //RR scheduling here
 
             if (readyQueue.size()>0) {
-
-                    if (executing==null) {
-                        executing = readyQueue.get(0);//get the next process with the highest priority from the readyQueue
-                        readyQueue.remove(executing);
-                        quantumStartTime = A3.getTime();
-                        if (!executing.run()){
-                            blockedQueue.add(executing);
-                            executing = null;
-                        }
-                    } else if (A3.getTime()-quantumStartTime==quantum){//if quantum time has passed for the running process then swap running process
+            //need to get the processes finishing correctly
+                if (executing==null) {
+                    executing = readyQueue.get(0);//get the next process with the highest priority from the readyQueue
+                    readyQueue.remove(executing);
+                    quantumStartTime = A3.getTime();
+                    if (!executing.run()){
                         blockedQueue.add(executing);
-                        executing = readyQueue.get(0);//get the next process with the highest priority from the readyQueue
-                        readyQueue.remove(executing);
-                        quantumStartTime = A3.getTime();
-                        if (!executing.run()){
-                            blockedQueue.add(executing);
-                            executing = null;
-                        }
-                    } else {//If the process can still run then run it again
-                        if (!executing.run()){
-                            blockedQueue.add(executing);
-                            executing = null;
-                        }
+                        executing = null;
+                    }
+                } else if (A3.getTime()-quantumStartTime==quantum){//if quantum time has passed for the running process then swap running process
+                    if (executing.checkPage()){
+                        readyQueue.add(executing);
+                    } else {
+                        blockedQueue.add(executing);
                     }
 
+                    executing = readyQueue.get(0);//get the next process with the highest priority from the readyQueue
+                    readyQueue.remove(executing);
+                    quantumStartTime = A3.getTime();
+                    if (!executing.run()){
+                        blockedQueue.add(executing);
+                        executing = null;
+                    }
+                } else {//If the process can still run then run it again
+                    if (!executing.run()){
+                        blockedQueue.add(executing);
+                        executing = null;
+                    }
+                }
 
                 if (blockedQueue.isEmpty() && readyQueue.isEmpty() && executing==null) {
                     allProcessesFinished = true;
