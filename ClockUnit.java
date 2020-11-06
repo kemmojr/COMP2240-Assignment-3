@@ -22,7 +22,6 @@ public class ClockUnit {
         useBit = useBitSetting;
     }
 
-
     public ClockUnit getNext(){
         return nextU;
     }

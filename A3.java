@@ -16,8 +16,8 @@ public class A3 {
             int framesPerProcess = frames/numProcesses;
 
             for (int i = 0; i < numProcesses; i++){
-                processes1.add(new Process(i+1, new Scanner(new FileInputStream(args[i+2])), framesPerProcess));
-                processes2.add(new Process(i+1, new Scanner(new FileInputStream(args[i+2])), framesPerProcess));
+                processes1.add(new Process(i+1, new Scanner(new FileInputStream(args[i+2])), framesPerProcess, args[i+2]));
+                processes2.add(new Process(i+1, new Scanner(new FileInputStream(args[i+2])), framesPerProcess, args[i+2]));
             }
         } catch (Exception e){
             System.err.println(e);
@@ -31,14 +31,18 @@ public class A3 {
             }
         }
 
-        System.out.println("Print out all the program statistics for each process for LRU and clock page replacement policies");
+        System.out.println("LRU - Fixed:");
+        System.out.println("PID\tProcess Name\tTurnaround Time\t\t# Faults\tFault Times");
+        for (Process p: processes1){
+            System.out.println(p);
+        }
+        System.out.println("\n---------------------------------------------------------------------");
+        System.out.println("Clock - Fixed:");
+        System.out.println("PID\tProcess Name\tTurnaround Time\t\t# Faults\tFault Times");
+        for (Process p: processes2){
+            System.out.println(p);
+        }
 
-
-        /*boolean allProcessesFinished = false;
-        while (!allProcessesFinished){//while loop to contain the RR scheduling of the processes
-            allProcessesFinished = true;
-            //incrementTime()
-        }*/
     }
 
     public static void RR(int replacementMode, int quantum, ArrayList<Process> allProcesses){
@@ -55,14 +59,12 @@ public class A3 {
 
         boolean allProcessesFinished = false;
         while (!allProcessesFinished){//while loop to
-            // contain the RR scheduling of the processes and the necessary methods for updating memory in processes etc.
             for (Process p:allProcesses){
                 p.checkPage();
             }
             updateReadyQueue(blockedQueue,readyQueue);
-            //RR scheduling here
 
-            if (readyQueue.size()>0) {
+            if (readyQueue.size()>0 || executing!=null) {
             //need to get the processes finishing correctly
                 if (executing==null) {
                     executing = readyQueue.get(0);//get the next process with the highest priority from the readyQueue
@@ -70,6 +72,8 @@ public class A3 {
                     quantumStartTime = A3.getTime();
                     if (!executing.run()){
                         blockedQueue.add(executing);
+                        executing = null;
+                    } else if (executing.hasFinished()){
                         executing = null;
                     }
                 } else if (A3.getTime()-quantumStartTime==quantum){//if quantum time has passed for the running process then swap running process
@@ -85,10 +89,14 @@ public class A3 {
                     if (!executing.run()){
                         blockedQueue.add(executing);
                         executing = null;
+                    } else if (executing.hasFinished()){
+                        executing = null;
                     }
                 } else {//If the process can still run then run it again
                     if (!executing.run()){
                         blockedQueue.add(executing);
+                        executing = null;
+                    } else if (executing.hasFinished()){
                         executing = null;
                     }
                 }
@@ -98,31 +106,7 @@ public class A3 {
                 }
             }
 
-            if (quantumTimeRemaining ==0){//Pre-emption with quantum time
-                if (readyQueue.size()<0 && !executing.checkPage()){
-                    //continue running the process without running the dispatcher
-                    quantumTimeRemaining = quantum;
-                    quantumStartTime = A3.getTime();
-                    if (executing.run()){//If the process becomes blocked after running
-                        blockedQueue.add(executing);
-                        executing = null;
-                    }
-                } else if (readyQueue.size()>0){//If there are processes in the readyQueue then swap to the process at teh top of the readyQueue
-                    if (executing.checkPage()){
-                        readyQueue.add(executing);//If the process is not blocked then add it back to the end of the ready queue
-                    }
-                    executing = readyQueue.get(0);
-                    readyQueue.remove(executing);
-                    if (!executing.run()){//If the process becomes blocked when it is run then add it to the blocked queue
-                        blockedQueue.add(executing);
-                    }
-                    quantumTimeRemaining = quantum;
-                    quantumStartTime = A3.getTime();
-                }
-
-
-            }
-            if (readyQueue.isEmpty()&&executing==null)
+            if (readyQueue.isEmpty()&&executing==null&&!pagesArrive(blockedQueue))
                 incrementTime();
 
         }
@@ -144,6 +128,15 @@ public class A3 {
         }
         addingToReadyQueue.sort(Process::compareTo);
         readyQueue.addAll(addingToReadyQueue);
+    }
+
+    public static boolean pagesArrive(ArrayList<Process> blockedQueue){//check to see if any pages will be be transferred into memory at the current time
+        for (Process p:blockedQueue){
+            if (p.checkPage()){
+                return true;
+            }
+        }
+        return false;
     }
 
     public static void resetTime(){//Resets the time to 0

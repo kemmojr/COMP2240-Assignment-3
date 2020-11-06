@@ -1,6 +1,4 @@
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.Scanner;
 
 public class Process implements Comparable<Process>{
@@ -9,8 +7,9 @@ public class Process implements Comparable<Process>{
     private int[] pMemory;
     private boolean blocked, pageExecuted, waitingOnPage;
     private IOController IOController;
+    private String fileName = null;
 
-    public Process(int id, Scanner fileReader, int sizeOfMemory){
+    public Process(int id, Scanner fileReader, int sizeOfMemory, String fName){
         ID = id;
         pMemory = new int[sizeOfMemory];
         blocked = false;
@@ -22,6 +21,7 @@ public class Process implements Comparable<Process>{
             pageRequestList.add(Integer.parseInt(in));
             in = fileReader.next();
         }
+        fileName = fName;
 
     }
 
@@ -63,17 +63,6 @@ public class Process implements Comparable<Process>{
         pageExecuted = false;
         waitingOnPage = true;
         blocked = true;
-    }
-
-    public boolean isReady(){//Function that checks if the I/O request has been completed and updates the blocked variable and outputs true if it is ready
-        if (!blocked){
-            return true;
-        }
-        if (pageArrivalTime<=A3.getTime()){//If the page that was being waited on to be transferred to memory has been transferred
-            blocked = false;
-            return true;
-        }
-        return false;
     }
 
     public boolean isPageInMemory(int pageIDNum){
@@ -130,6 +119,18 @@ public class Process implements Comparable<Process>{
             return true;
         }
         return false;
+    }
+
+    @Override
+    public String toString(){
+        String out = ID + "\t" + fileName + "\t" + turnaroundTime + "\t\t\t\t\t" + pageFaultTimes.size() + "\t\t\t{";
+        for (int i = 0; i < pageFaultTimes.size(); i++){
+            if (i==pageFaultTimes.size()-1)
+                out += pageFaultTimes.get(i) + "}";
+            else
+                out += pageFaultTimes.get(i) + ", ";
+        }
+        return out;
     }
 
     @Override
