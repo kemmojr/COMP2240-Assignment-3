@@ -1,13 +1,14 @@
 import java.util.ArrayList;
 import java.util.Scanner;
 
+//Class for holding a Process object. Implements comparable for sorting when adding multiple processes to the ready queue at the one time
 public class Process implements Comparable<Process>{
     private int ID, currentPage = 0, pageArrivalTime = 0, turnaroundTime = 0;//The ID, page to be executed and turnaround time of the process
     private ArrayList<Integer> pageRequestList = new ArrayList<>(), pageFaultTimes = new ArrayList<>();
     private int[] pMemory;
-    private boolean blocked, pageExecuted, waitingOnPage;
+    private boolean blocked, waitingOnPage;
     private IOController IOController;
-    private String fileName = null;
+    private String fileName;
 
     public Process(int id, Scanner fileReader, int sizeOfMemory, String fName){
         ID = id;
@@ -15,7 +16,7 @@ public class Process implements Comparable<Process>{
         blocked = false;
 
         IOController = new IOController(sizeOfMemory,pMemory);
-        fileReader.next();
+        fileReader.next();//This would be begin in the current data file formatting
         String in = fileReader.next();
         while (!in.equalsIgnoreCase("end")){
             pageRequestList.add(Integer.parseInt(in));
@@ -26,7 +27,7 @@ public class Process implements Comparable<Process>{
     }
 
     //Returns true if the process either can continue running or has finished
-    public boolean run(){//A function that runs the process which will be used when the process becomes unblocked (i.e. the frame requested has been transferred)
+    public boolean run(){//A function that runs the process by executing the current page. Will only be used when the process is ready (i.e. the frame requested has been transferred)
         //This function will execute one page instruction. Then either it will stop and issue a page fault if necessary.
         //The main loop will handle stopping for quantum time etc
         /*executes the page and increments the time
@@ -34,7 +35,7 @@ public class Process implements Comparable<Process>{
         executes it if the page is in memory
         otherwise it issues a page fault and becomes blocked*/
         //Page should be in memory at this point. Execute the page instruction and then get the next instruction
-        A3.incrementTime();//Executes the page
+        A3.incrementTime();//Executes the page to be executed which is currently in memory
         if (pageRequestList.size()==0){//If all of the pages have been executed then the process is finished execution
             turnaroundTime = A3.getTime();
             return true;
@@ -60,7 +61,6 @@ public class Process implements Comparable<Process>{
         pageRequestList.remove(0);
         pageArrivalTime = A3.getTime() + IOController.getIOTime();
         pageFaultTimes.add(A3.getTime());
-        pageExecuted = false;
         waitingOnPage = true;
         blocked = true;
     }
