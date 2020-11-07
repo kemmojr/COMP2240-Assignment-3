@@ -1,14 +1,24 @@
+/*
+COMP2240 Assignment 3
+File: Process.java
+Author: Timothy Kemmis
+Std no. c3329386
+Description: A Process object that holds all of the information unique to the process; the trace of all the page requests of the process, the memory allocated to the process,
+process ID, process file name, the list of page fault times of the process, turnaround time and a IO Controller for the process.
+
+*/
+
 import java.util.ArrayList;
 import java.util.Scanner;
 
-//Class for holding a Process object. Implements comparable for sorting when adding multiple processes to the ready queue at the one time
+//Implements comparable for sorting when adding multiple processes to the ready queue at the one time
 public class Process implements Comparable<Process>{
-    private int ID, currentPage = 0, pageArrivalTime = 0, turnaroundTime = 0;//The ID, page to be executed and turnaround time of the process
-    private ArrayList<Integer> pageRequestList = new ArrayList<>(), pageFaultTimes = new ArrayList<>();
-    private int[] pMemory;
-    private boolean blocked, waitingOnPage;
-    private IOController IOController;
-    private String fileName;
+    private int ID, currentPage = 0, pageArrivalTime = 0, turnaroundTime = 0;//The ID, page to be executed, time that the requested page arrives from IO and process turnaround time
+    private ArrayList<Integer> pageRequestList = new ArrayList<>(), pageFaultTimes = new ArrayList<>();// ArrayLists for the trace of page requests and page fault times of the process
+    private int[] pMemory;//The block of memory assigned to the process
+    private boolean blocked, waitingOnPage;//Variables for knowing what state the process is in
+    private IOController IOController;//The IO Controller that deals with the paging of the process memory
+    private String fileName;//The filename that corresponds to the process
 
     public Process(int id, Scanner fileReader, int sizeOfMemory, String fName){
         ID = id;
