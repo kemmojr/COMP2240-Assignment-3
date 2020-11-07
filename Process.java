@@ -5,7 +5,9 @@ Author: Timothy Kemmis
 Std no. c3329386
 Description: A Process object that holds all of the information unique to the process; the trace of all the page requests of the process, the memory allocated to the process,
 process ID, process file name, the list of page fault times of the process, turnaround time and a IO Controller for the process.
-
+The process has various methods that check if the next page needed is in memory and if not then an IO request is made by getting the IO swap time, calculating when the page arrives
+in memory and then using the IO controller to swap the page into memory using the page replacement policy set by the mode of the controller. A run method executes the instruction of the
+page and then page faults.
 */
 
 import java.util.ArrayList;
@@ -20,39 +22,35 @@ public class Process implements Comparable<Process>{
     private IOController IOController;//The IO Controller that deals with the paging of the process memory
     private String fileName;//The filename that corresponds to the process
 
+    //Constructor that initialises process variables and reads through the process file to create the trace of page calls
     public Process(int id, Scanner fileReader, int sizeOfMemory, String fName){
         ID = id;
-        pMemory = new int[sizeOfMemory];
+        pMemory = new int[sizeOfMemory];//Memory is an array of integers and with a size corresponding to the number of frames allocated to the process
         blocked = false;
+        fileName = fName;
 
-        IOController = new IOController(sizeOfMemory,pMemory);
-        fileReader.next();//This would be begin in the current data file formatting
-        String in = fileReader.next();
-        while (!in.equalsIgnoreCase("end")){
+        IOController = new IOController(sizeOfMemory,pMemory);//Creates a new IO Controller for the process which has access to the memory of the process and deals with page replacement
+        fileReader.next();//This would be "begin" in the current data file formatting
+        String in = fileReader.next();//The first page request number
+        while (!in.equalsIgnoreCase("end")){//while loop that loops through the process file and adds all the page requests to the ArrayList
             pageRequestList.add(Integer.parseInt(in));
             in = fileReader.next();
         }
-        fileName = fName;
-
     }
 
     //Returns true if the process either can continue running or has finished
-    public boolean run(){//A function that runs the process by executing the current page. Will only be used when the process is ready (i.e. the frame requested has been transferred)
+    public boolean run(){
+        //A method that runs the process by executing the current page. Will only be used when the process is ready (i.e. the page to be executed has been transferred into memory)
         //This function will execute one page instruction. Then either it will stop and issue a page fault if necessary.
-        //The main loop will handle stopping for quantum time etc
-        /*executes the page and increments the time
-        Moves on to the next page in the page request list
-        executes it if the page is in memory
-        otherwise it issues a page fault and becomes blocked*/
-        //Page should be in memory at this point. Execute the page instruction and then get the next instruction
+
         A3.incrementTime();//Executes the page to be executed which is currently in memory
         if (pageRequestList.size()==0){//If all of the pages have been executed then the process is finished execution
-            turnaroundTime = A3.getTime();
+            turnaroundTime = A3.getTime();//set the turnaround time and return true to indicate finishing
             return true;
         }
-        currentPage = pageRequestList.get(0);
+        currentPage = pageRequestList.get(0);//Gets the next page to be executed if available and remove it from the request list
         pageRequestList.remove(0);
-        if (!isPageInMemory(currentPage)){
+        if (!isPageInMemory(currentPage)){//If the page is not in memory then issue a page fault and request the page
             pageArrivalTime = A3.getTime() + IOController.getIOTime();
             pageFaultTimes.add(A3.getTime());
             waitingOnPage = true;
@@ -96,12 +94,12 @@ public class Process implements Comparable<Process>{
     //Returns true if the page is in memory
     public boolean checkPage(){//Checks if the next page has reached the time when it enters memory and puts it in if the time has been reached
         if (waitingOnPage){
-            if (pageArrivalTime==A3.getTime()){
+            if (pageArrivalTime==A3.getTime()){//Transfers the page into memory if the IO wait is finished
                 putPageInMemory();//Puts the page in memory. Function handles what to do in each of the possible scenarios
                 waitingOnPage = false;
-                return true;
+                return true;//The page is in memory so return true.
             } else {
-                return false;
+                return false;//Otherwise return false
             }
         }
 
@@ -109,7 +107,8 @@ public class Process implements Comparable<Process>{
     }
 
     public void putPageInMemory(){
-        //Called when the I/O wait is over and has transferred the page. Put the page into memory using the I/O controller. Also update the ready state of the process
+        //Called when the I/O wait is over and has transferred the page. Put the page into memory using the I/O controller.
+        // The method either uses the page that is in memory, puts the page in an empty memory slot or replaces using the set replacement policy of the controller.
 
         if (isPageInMemory(currentPage)){//Update the LRU pages in the I/O controller
             IOController.usePageInMemory(currentPage);
@@ -124,7 +123,7 @@ public class Process implements Comparable<Process>{
         IOController.setMode(modeNumber);//mode 1 LRU. mode 2 clock
     }
 
-    public boolean hasFinished(){
+    public boolean hasFinished(){//Method that returns true when the process has finished running all it's pages
         if (pageRequestList.size()==0 && turnaroundTime!=0){//The process has finished if there are no more pages to request and the turnaround time has been written to.
             return true;
         }
@@ -132,7 +131,7 @@ public class Process implements Comparable<Process>{
     }
 
     @Override
-    public String toString(){
+    public String toString(){//Outputs the statistics of the process as per the spec
         String out = ID + "\t" + fileName + "\t" + turnaroundTime + "\t\t\t\t\t" + pageFaultTimes.size() + "\t\t\t{";
         for (int i = 0; i < pageFaultTimes.size(); i++){
             if (i==pageFaultTimes.size()-1)
@@ -144,7 +143,7 @@ public class Process implements Comparable<Process>{
     }
 
     @Override
-    public int compareTo(Process p) {
+    public int compareTo(Process p) {//CompareTo method used for sorting the processes
         if (this.ID>p.ID)
             return 1;
         else if (this.ID<p.ID)

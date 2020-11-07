@@ -1,3 +1,10 @@
+/*
+COMP2240 Assignment 3
+File: IOController.java
+Author: Timothy Kemmis
+Std no. c3329386
+ */
+
 import java.util.ArrayList;
 
 public class IOController {
@@ -6,7 +13,7 @@ public class IOController {
     private int IOSwapTime;//A variable for the amount of time that it takes for a page to be transferred from IO to main memory
     private ArrayList<Integer> recentlyUsedPages = new ArrayList<>();//An ArrayList that stores the order in which the current frames in memory have been used from most recent to least
     private ArrayList<ClockUnit> clock = new ArrayList<>();//An arrayList to be used for the clock page replacement strategy
-    private ClockUnit nextClockFrame;
+    private ClockUnit nextClockFrame;//Pointer used in clock page replacement that points to the next clock frame in the circular clock buffer
     private int[] memory;
 
     public IOController(int numFrames, int[] processMemory){
@@ -17,13 +24,13 @@ public class IOController {
 
         //initialise an empty clock for clock replacement policy
         for (int i = 0; i < numFrames; i++) {
-            clock.add(new ClockUnit(0,false));//Creates the empty circular buffer. Use bit is false as technically the frame has not been used
+            clock.add(new ClockUnit(0,false));//Creates the empty circular buffer. Use bit is false as technically the page has not been used
             if (i>0){
-                clock.get(i-1).setNext(clock.get(i));
+                clock.get(i-1).setNext(clock.get(i));//Links all the clock units together in a linked list
             }
         }
         clock.get(numFrames-1).setNext(clock.get(0));//Sets the next of the last clock unit to the first, making it circular
-        nextClockFrame = clock.get(0);
+        nextClockFrame = clock.get(0);//Sets the next clock frame pointer to the first clock unit
     }
 
     public void pageInFreeSlot(int pageIn){//puts a page in the first available free memory slot. Is only called when memory has a free space
