@@ -48,11 +48,11 @@ public class Process implements Comparable<Process>{
             turnaroundTime = A3.getTime();//set the turnaround time and return true to indicate finishing
             return true;
         }
-        currentPage = pageRequestList.get(0);//Gets the next page to be executed if available and remove it from the request list
+        currentPage = pageRequestList.get(0);//Gets the next page to be executed and removes it from the request list
         pageRequestList.remove(0);
         if (!isPageInMemory(currentPage)){//If the page is not in memory then issue a page fault and request the page
-            pageArrivalTime = A3.getTime() + IOController.getIOTime();
-            pageFaultTimes.add(A3.getTime());
+            pageArrivalTime = A3.getTime() + IOController.getIOTime();//Calculate the time when the page will arrive in memory from IO
+            pageFaultTimes.add(A3.getTime());//Record the page fault
             waitingOnPage = true;
             blocked = true;
             return false;
@@ -64,16 +64,16 @@ public class Process implements Comparable<Process>{
 
     }
 
-    public void begin(){//Method for the first time the process is run
-        currentPage = pageRequestList.get(0);
+    public void begin(){//Method to start the process
+        currentPage = pageRequestList.get(0);//gets the next page to be executed
         pageRequestList.remove(0);
-        pageArrivalTime = A3.getTime() + IOController.getIOTime();
+        pageArrivalTime = A3.getTime() + IOController.getIOTime();//Calculates when the page will arrive from IO and issues a page fault
         pageFaultTimes.add(A3.getTime());
         waitingOnPage = true;
         blocked = true;
     }
 
-    public boolean isPageInMemory(int pageIDNum){
+    public boolean isPageInMemory(int pageIDNum){//Checks if a given page is in memory
         for (int i: pMemory){
             if (pageIDNum==i){
                 return true;
@@ -82,7 +82,7 @@ public class Process implements Comparable<Process>{
         return false;
     }
 
-    public boolean isMemoryFull(){
+    public boolean isMemoryFull(){//Checks if there are are free spaces remaining in memory
         for (int i:pMemory){
             if (i==0){
                 return false;
@@ -99,7 +99,7 @@ public class Process implements Comparable<Process>{
                 waitingOnPage = false;
                 return true;//The page is in memory so return true.
             } else {
-                return false;//Otherwise return false
+                return false;//Otherwise return false as the page is not in memory
             }
         }
 
@@ -109,7 +109,7 @@ public class Process implements Comparable<Process>{
     public void putPageInMemory(){
         //Called when the I/O wait is over and has transferred the page. Put the page into memory using the I/O controller.
         // The method either uses the page that is in memory, puts the page in an empty memory slot or replaces using the set replacement policy of the controller.
-
+        //current page is the page that is currently going to be executed which is being put in memory
         if (isPageInMemory(currentPage)){//Update the LRU pages in the I/O controller
             IOController.usePageInMemory(currentPage);
         } else if (!isMemoryFull()){//Is there a free slot in memory. If so then put the page in the free slot

@@ -14,7 +14,7 @@ public class IOController {
     private ArrayList<Integer> recentlyUsedPages = new ArrayList<>();//An ArrayList that stores the order in which the current frames in memory have been used from most recent to least
     private ArrayList<ClockUnit> clock = new ArrayList<>();//An arrayList to be used for the clock page replacement strategy
     private ClockUnit nextClockFrame;//Pointer used in clock page replacement that points to the next clock frame in the circular clock buffer
-    private int[] memory;
+    private int[] memory;//The memory of the process this IO controller is responsible for
 
     public IOController(int numFrames, int[] processMemory){
         int mode = 0;//Sets the mode to a non-functioning mode 0. The controller will need to be told which page replacement strategy to use with setMode()
@@ -71,7 +71,7 @@ public class IOController {
         mode = modeNum;
     }
 
-    public int getIOTime(){
+    public int getIOTime(){//Gets the time taken to transfer a page from IO
         return IOSwapTime;
     }
 

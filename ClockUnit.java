@@ -16,6 +16,7 @@ public class ClockUnit {//A node to be used to create a circular linked list for
         nextU = null;
     }
 
+    //Setters
     public void setNext(ClockUnit nxt){//Sets the next pointer of the ClockUnit node
         nextU = nxt;
     }
@@ -29,6 +30,7 @@ public class ClockUnit {//A node to be used to create a circular linked list for
         useBit = useBitSetting;
     }
 
+    //Getters
     public ClockUnit getNext(){//Gets the next pointer of the ClockUnit
         return nextU;
     }

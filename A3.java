@@ -34,7 +34,7 @@ public class A3 {
                 processes1.add(new Process(i+1, new Scanner(new FileInputStream(args[i+2])), framesPerProcess, args[i+2]));
                 processes2.add(new Process(i+1, new Scanner(new FileInputStream(args[i+2])), framesPerProcess, args[i+2]));
             }
-        } catch (Exception e){
+        } catch (Exception e){//If an error occurs with initialising the process files then terminate the program
             System.err.println(e);
             System.exit(-1);
         }
