@@ -3,6 +3,7 @@ COMP2240 Assignment 3
 File: IOController.java
 Author: Timothy Kemmis
 Std no. c3329386
+Description: The IO Controller that handles the swapping of pages into memory with LRU and Clock page replacement policies. Stores all the information necessary for both policies.
  */
 
 import java.util.ArrayList;
@@ -34,11 +35,9 @@ public class IOController {
     }
 
     public void pageInFreeSlot(int pageIn){//puts a page in the first available free memory slot. Is only called when memory has a free space
-        int insertionFrameNum = 0;
         for (int i = 0; i < memorySize; i++){
             if (memory[i]==0){//if the frame is empty then put the page in
                 memory[i] = pageIn;
-                insertionFrameNum = i;
                 break;
             }
         }
@@ -78,26 +77,26 @@ public class IOController {
     public void swapPageIn(int pageNum){
         if (mode==1){
             //bring the page into memory and use LRU page replacement policy when page replacement is necessary
-            Integer leastUsedFrame = recentlyUsedPages.get(recentlyUsedPages.size()-1);
-            recentlyUsedPages.remove(leastUsedFrame);
-            memory[getIndexOf(leastUsedFrame)] = pageNum;
-            recentlyUsedPages.add(0, pageNum);
+            Integer leastUsedPage = recentlyUsedPages.get(recentlyUsedPages.size()-1);//Find the page in memory that has been used the least
+            recentlyUsedPages.remove(leastUsedPage);//Remove the least used frame to ensure the list is always the same size
+            memory[getIndexOf(leastUsedPage)] = pageNum;//replace the page in memory
+            recentlyUsedPages.add(0, pageNum);//Update the list of recently used pages
 
         } else if (mode ==2){
             //bring the page into memory and use clock page replacement policy when page replacement is necessary
             int replacedPage = 0;
             boolean pageInserted = false;
-            while (!pageInserted){
+            while (!pageInserted){//Cycle through the circular buffer of the clock unit until a usable page location is found
                 if (!nextClockFrame.getUseBit()){
-                    replacedPage = nextClockFrame.getPage();
-                    nextClockFrame.setPage(pageNum);
+                    replacedPage = nextClockFrame.getPage();//get the page we are replacing to find in the memory later
+                    nextClockFrame.setPage(pageNum);//Replace the page in the circular clock buffer and increment the clock frame pointer
                     nextClockFrame = nextClockFrame.getNext();
                     pageInserted = true;
                 } else {
-                    nextClockFrame = nextClockFrame.passOver();
+                    nextClockFrame = nextClockFrame.passOver();//If the current unit cannot be used then pass over it
                 }
             }
-            memory[getIndexOf(replacedPage)] = pageNum;
+            memory[getIndexOf(replacedPage)] = pageNum;//Replace the page in memory
         }
     }
 
